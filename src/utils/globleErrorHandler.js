@@ -5,7 +5,8 @@ import { ApiResponse } from "./ApiResponse.js";
 const globalErrorHandler = (err, req, res, next) => {
     // If error is not an instance of ApiError, create a generic one
     if (!(err instanceof ApiError)) {
-        err = new ApiError(500, "Internal Server Error");
+        console.log(err);
+        err = new ApiError(500, err.message);
     }
 
     // 🔹 Standardized API Response

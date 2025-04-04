@@ -2,6 +2,7 @@ import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import path from "path";
 import { ApiError } from "./apiError.js";
+import HTTP_STATUS_CODES from "./httpStatusCodes.js";
 
 
 // Define folder paths for images and videos
@@ -34,7 +35,7 @@ const uploadOnCloudinary = async (localFilePath) => {
 
         if (!folderName) {
             console.log("Unsupported file type.");
-            throw new ApiError(400, "Unsupported file type");
+            throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Unsupported file type");
         }
 
         const response = await cloudinary.uploader.upload(localFilePath, {
@@ -72,7 +73,7 @@ const deleteFromCloudinary = async (link) => {
         // console.log("File deleted successfully:", response);
         return response;
     } catch (error) {
-        throw new ApiError(500, error.message);
+        throw new ApiError(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR.code, error.message);
     }
 };
 

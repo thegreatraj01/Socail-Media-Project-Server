@@ -7,6 +7,8 @@ import jwt from 'jsonwebtoken';
 import fs from "fs";
 import mongoose from 'mongoose';
 import sendOtp from '../services/sms/sendOtp.js';
+import HTTP_STATUS_CODES from '../utils/httpStatusCodes.js';
+import { Http2ServerRequest } from 'http2';
 
 
 export const genrateAccessAndRefreshTokens = async (userId) => {
@@ -19,28 +21,20 @@ export const genrateAccessAndRefreshTokens = async (userId) => {
         return { accessToken, refreshToken };
 
     } catch (error) {
-        throw new ApiError(500, 'Something went wrong while generating access token and refresh token');
+        throw new ApiError(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR.code, 'Something went wrong while generating access token and refresh token');
     }
 
 }
-
+// DONE:  API Testing ✅ (Completed)
 export const registerUser = asyncHandler(async (req, res) => {
-    // get user details from frontend
-    // validation - not empty
-    // check if user already exists: username, email if user already exists remove images upload by multer in public folder 
-    //veify mobilenumber or email 
-    // check for images, check for avatar
-    // upload them to cloudinary, avatar
-    // create user object - create entry in db
-    // remove password and refresh token field from response
-    // check for user creation
-    // return res
+
     const { userName, fullName, emailOrMobileNumber, password } = req.body;
     if (
-        [userName, fullName, emailOrMobileNumber, password].some(feild =>
-            feild?.trim() === "")
+        [userName, fullName, emailOrMobileNumber, password].some(field =>
+            !field || field?.trim() === ""
+        )
     ) {
-        throw new ApiError(400, "All fields are required");
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "All fields are required");
     };
     let email, mobileNumber;
     if (emailOrMobileNumber.includes("@")) {
@@ -50,23 +44,21 @@ export const registerUser = asyncHandler(async (req, res) => {
         mobileNumber = emailOrMobileNumber;
         email = null;
     } else {
-        throw new ApiError(400, "Invalid email or mobile number");
-    }
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Invalid email or mobile number");
+    };
 
     const avaterLocalPath = req.files?.avatar && req.files?.avatar[0]?.path;
     if (!avaterLocalPath) {
-        throw new ApiError(400, "avatar image is required upload an image");
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "avatar image is required upload an image");
     };
     // const coverImageLocalPath = req.files?.coverImage[0]?.path;
     let coverImageLocalPath;
     if (req.files && req.files.coverImage && req.files.coverImage[0]) {
         coverImageLocalPath = req.files.coverImage[0].path;
     };
-
     const existedUser = await User.findOne({
-        $or: [{ email }, { userName }, { mobileNumber }]
-    })
-
+        $or: [{ email }, { userName }]
+    });
     if (existedUser) {
         fs.unlink(avaterLocalPath, (err) => {
             console.log(err, 'error while deleting image')
@@ -74,13 +66,13 @@ export const registerUser = asyncHandler(async (req, res) => {
         coverImageLocalPath && fs.unlink(coverImageLocalPath, (err) => {
             console.log(err, 'error while deleting image')
         });
-        throw new ApiError(409, "user with this email or username already exists");
+        throw new ApiError(HTTP_STATUS_CODES.CONFLICT.code, "user with this email or username already exists");
     };
 
     const avatar = await uploadOnCloudinary(avaterLocalPath);
     const coverImage = coverImageLocalPath ? await uploadOnCloudinary(coverImageLocalPath) : "";
     if (!avatar) {
-        throw new ApiError(400, "avater image is required")
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "avater image is required")
     }
     const user = await User.create({
         fullName,
@@ -94,39 +86,40 @@ export const registerUser = asyncHandler(async (req, res) => {
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken -iSmobileNumberVerified -iSemailVerified"
     );
-    if (mobileNumber) {
-        sendOtp(createdUser._id, mobileNumber && mobileNumber);
-    } else if (email) {
+    // TODO: complite this function  
+    // if (mobileNumber) {
+    //     sendOtp(createdUser._id, mobileNumber && mobileNumber);
+    // } else if (email) {
 
-    }
+    // }
 
-    return res.status(201).json(new ApiResponse(200, createdUser, `user registered  successfuly ${mobileNumber ? 'otp is send to you Number please vefify It ' : 'otp is send to your email plase verify it '}`));
+    // return res.status(HTTP_STATUS_CODES.CREATED.code).json(new ApiResponse(HTTP_STATUS_CODES.OK.code, createdUser, `user registered  successfuly ${mobileNumber ? 'otp is send to you Number please vefify It ' : 'otp is send to your email plase verify it '}`));
+    return res.status(HTTP_STATUS_CODES.CREATED.code).json(
+        new ApiResponse(
+            HTTP_STATUS_CODES.OK.code,
+            createdUser,
+            `user registered  successfuly`)
+    );
 });
 
+// DONE:  API Testing ✅ (Completed)
 export const loginUser = asyncHandler(async (req, res) => {
-    // req body -> data
-    // username or email
-    //find the user
-    //password check
-    //access and referesh token
-    //send cookie
     const { userName, email, password } = req.body;
-    // if(!userName && !email)  we can use it if userName and email both not provided then if block code will be executed
     if (!(userName || email)) {
-        throw new ApiError(400, "userName or email is required");
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "userName or email is required");
     }
     if (!password.trim()) {
-        throw new ApiError(400, "password is required");
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "password is required");
     }
     const user = await User.findOne({
         $or: [{ userName }, { email }]
     });
     if (!user) {
-        throw new ApiError(404, "No user found please check username or email")
+        throw new ApiError(HTTP_STATUS_CODES.NOT_FOUND.code, "No user found please check username or email")
     }
     const isPasswordValid = user.isPasswordCorrect(password)
     if (!isPasswordValid) {
-        throw new ApiError(401, "Invalid User credintial")
+        throw new ApiError(HTTP_STATUS_CODES.UNAUTHORIZED.code, "Invalid User credintial")
     }
     const { refreshToken, accessToken } = await genrateAccessAndRefreshTokens(user._id);
     const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
@@ -134,11 +127,11 @@ export const loginUser = asyncHandler(async (req, res) => {
         httpOnly: true,
         secure: true
     }
-    return res.status(200)
+    return res.status(HTTP_STATUS_CODES.OK.code)
         .cookie('refreshToken', refreshToken, options)
         .cookie('accessToken', accessToken, options)
         .json(new ApiResponse(
-            200,
+            HTTP_STATUS_CODES.OK.code,
             {
                 user: loggedInUser, accessToken, refreshToken
             },
@@ -147,6 +140,7 @@ export const loginUser = asyncHandler(async (req, res) => {
 
 })
 
+// DONE:  API Testing ✅ (Completed)
 export const logOutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
@@ -163,19 +157,19 @@ export const logOutUser = asyncHandler(async (req, res) => {
         httpOnly: true,
         secure: true
     }
-    return res.status(200)
+    return res.status(HTTP_STATUS_CODES.OK.code)
         .clearCookie("refreshToken", options)
         .clearCookie("accessToken", options)
-        .json(new ApiResponse(200, {}, "User logged out successfully"));
+        .json(new ApiResponse(HTTP_STATUS_CODES.OK.code, {}, "User logged out successfully"));
 
 });
 
+// DONE:  API Testing ✅ (Completed)
 export const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies?.refreshToken || req.body.refreshToken;
-    // console.log(incomingRefreshToken);
 
     if (!incomingRefreshToken) {
-        throw new ApiError(401, "Unauthorized request No token provided");
+        throw new ApiError(HTTP_STATUS_CODES.UNAUTHORIZED.code, "Unauthorized request No token provided");
     };
     try {
         const decoded = jwt.verify(
@@ -185,67 +179,77 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
 
         const user = await User.findById(decoded?._id);
         if (!user) {
-            throw new ApiError(401, "Invalid refresh token");
+            throw new ApiError(HTTP_STATUS_CODES.UNAUTHORIZED.code, "Invalid refresh token");
         };
         if (incomingRefreshToken !== user?.refreshToken) {
-            throw new ApiError(401, "refresh token is expired or used");
+            throw new ApiError(HTTP_STATUS_CODES.UNAUTHORIZED.code, "refresh token is expired or used");
         }
         const option = {
             httpOnly: true,
             secure: true,
         };
         const { accessToken, refreshToken } = await genrateAccessAndRefreshTokens(user?._id);
-        return res.status(200)
+        return res.status(HTTP_STATUS_CODES.OK.code)
             .cookie("refreshToken", refreshToken, option)
             .cookie("accessToken", accessToken, option)
             .json(
                 new ApiResponse(
-                    200,
+                    HTTP_STATUS_CODES.OK.code,
                     { accessToken, refreshToken },
                     "token refreshed successfully"
                 )
             );
 
     } catch (error) {
-        throw new ApiError(500, error?.message || "invalid refresh token");
+        throw new ApiError(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR.code, error?.message || "invalid refresh token");
     }
 
 });
 
+// DONE:  API Testing ✅ (Completed)
 export const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword } = req.body;
+
     if (!oldPassword?.trim() || !newPassword?.trim()) {
-        throw new ApiError(400, "old password and new password is required");
-    };
-    if (oldPassword?.trim() === newPassword?.trim()) {
-        throw new ApiError(400, "old password and new password are same");
-    };
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Old password and new password are required");
+    }
+
+    if (oldPassword.trim() === newPassword.trim()) {
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Old and new passwords cannot be the same");
+    }
+
     const user = await User.findById(req.user?._id);
     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
     if (!isPasswordCorrect) {
-        throw new ApiError(400, "Invalid Old password ");
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Invalid old password");
     }
-    user.password = newPassword;
-    await user.save({ validateBeforesave: false });
 
-    return res.status(200)
-        .json(new ApiResponse(200, {}, "password changed successfully"));
+    user.password = newPassword;
+    await user.save({ validateBeforeSave: false });
+
+    return res.status(HTTP_STATUS_CODES.OK.code)
+        .json(new ApiResponse(HTTP_STATUS_CODES.OK.code, {}, "Password changed successfully"));
 });
 
 // TODO: create a fuction for change password using otp 
 
+
+// DONE:  API Testing ✅ (Completed)
 export const getCurrentUser = asyncHandler(async (req, res) => {
     if (!req.user) {
-        throw new ApiError(404, "User not found");
+        throw new ApiError(HTTP_STATUS_CODES.NOT_FOUND.code, "User not found");
     }
-    return res.status(200).json(new ApiResponse(200, req.user, "Current user fatched successfully"));
+    return res.status(HTTP_STATUS_CODES.OK.code).json(new ApiResponse(HTTP_STATUS_CODES.OK.code, req.user, "Current user fatched successfully"));
 });
 
+// DONE:  API Testing ✅ (Completed)
 export const updateUserDetails = asyncHandler(async (req, res) => {
     const { fullName, email } = req.body;
     if (!fullName || !email) {
-        throw new ApiError(400, "All fields are required");
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "fullName and email are required");
     }
+
+    // TODO: Add Email validation to change email  
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
@@ -256,77 +260,94 @@ export const updateUserDetails = asyncHandler(async (req, res) => {
         }
         , { new: true }
     ).select("-password");
-    return res.status(200)
-        .json(new ApiResponse(200, user, "user updated successfully"));
+    return res.status(HTTP_STATUS_CODES.OK.code)
+        .json(new ApiResponse(HTTP_STATUS_CODES.OK.code, user, "user updated successfully"));
 
 });
 
+// DONE:  API Testing ✅ (Completed)
 export const updateUserAvatar = asyncHandler(async (req, res) => {
     const localFilePath = req.file?.path;
-    // Validate if avatar file is present
     if (!localFilePath) {
-        throw new ApiError(400, "Avatar file is missing");
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Avatar file is missing");
     }
-    // Fetch the user once
     const user = await User.findById(req.user?._id);
     if (!user) {
-        throw new ApiError(404, "User not found");
+        throw new ApiError(HTTP_STATUS_CODES.NOT_FOUND.code, "User not found");
     }
     const oldAvatar = user.avatar;
     // Delete old avatar from Cloudinary if it exists
     if (oldAvatar) {
-        await deleteFromCloudinary(oldAvatar);
+        try {
+            await deleteFromCloudinary(oldAvatar);
+        } catch (error) {
+            console.error("Failed to delete old avatar:", error);
+        }
     }
+
     // Upload new avatar
     const avatar = await uploadOnCloudinary(localFilePath);
     // Handle upload failure
     if (!avatar || !avatar.secure_url) {
-        throw new ApiError(400, "Error while uploading avatar");
+        throw new ApiError(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR.code, "Error while uploading avatar");
     }
     // Update user's avatar field
     user.avatar = avatar.secure_url;
     await user.save();
-    // Exclude sensitive fields like password from the response
     const updatedUser = user.toObject();
     delete updatedUser.password;
-    return res.status(200).json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
+    delete updatedUser.refreshToken;
+
+    return res.status(HTTP_STATUS_CODES.OK.code)
+        .json(new ApiResponse(
+            HTTP_STATUS_CODES.OK.code,
+            updatedUser,
+            "Avatar updated successfully"
+        ));
 });
 
-
+// DONE:  API Testing ✅ (Completed)
 export const updateUserCoverImage = asyncHandler(async (req, res) => {
     const locaFilePtah = req.file?.path;
     if (!locaFilePtah) {
-        throw new ApiError(400, "coverImage file is missing");
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "coverImage file is missing");
     };
 
     const user = await User.findById(req.user._id);
     const oldCoverImage = user.coverImage;
 
     if (oldCoverImage) {
-        await deleteFromCloudinary(oldCoverImage);
+        try {
+            await deleteFromCloudinary(oldCoverImage);
+        } catch (error) {
+            console.error("Failed to delete old CoverImage:", error);
+        }
     }
 
     const coverImage = await uploadOnCloudinary(locaFilePtah);
     if (!coverImage || !coverImage.secure_url) {
-        throw new ApiError(500, "Error while uploading avatar");
-    }
-    if (!coverImage.secure_url) {
-        throw new ApiError(400, "Eroor while uploading coverImage");
+        throw new ApiError(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR.code, "Error while uploading avatar");
     }
     user.coverImage = coverImage.secure_url;
     await user.save();
 
     const updatedUser = user.toObject();
     delete updatedUser.password;
+    delete updatedUser.refreshToken;
 
-    return res.status(200)
-        .json(new ApiResponse(200, updatedUser, "coverImage updated successfully"));
+    return res.status(HTTP_STATUS_CODES.OK.code)
+        .json(new ApiResponse(
+            HTTP_STATUS_CODES.OK.code,
+            updatedUser,
+            "coverImage updated successfully"
+        ));
 });
+
 
 export const getUserChannelProfile = asyncHandler(async (req, res) => {
     const { userName } = req.params;
     if (!userName) {
-        throw new ApiError(400, "UserName is missing");
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "UserName is missing");
     };
     const channel = await User.aggregate([
         {
@@ -384,8 +405,8 @@ export const getUserChannelProfile = asyncHandler(async (req, res) => {
     if (!channel?.length) {
         throw new Error("Channel does not exist");
     };
-    return res.status(200)
-        .json(new ApiResponse(200, channel[0], "user Channel fetched successfully"));
+    return res.status(HTTP_STATUS_CODES.OK.code)
+        .json(new ApiResponse(HTTP_STATUS_CODES.OK.code, channel[0], "user Channel fetched successfully"));
 });
 
 export const getUserWatchHistory = asyncHandler(async (req, res) => {
@@ -431,9 +452,9 @@ export const getUserWatchHistory = asyncHandler(async (req, res) => {
         }
     ]);
 
-    return res.status(200)
+    return res.status(HTTP_STATUS_CODES.OK.code)
         .json(new ApiResponse(
-            200,
+            HTTP_STATUS_CODES.OK.code,
             user[0].watchHistory,
             "Watch History fetched successfully"
         ));

@@ -14,9 +14,9 @@ const UserSchema = new Schema({
         maxlength: [30, 'Username cannot exceed 10 characters'], // Correcting 'maxCount' to 'maxlength'
         validate: {
             validator: function (v) {
-                return /^[a-zA-Z0-9]+$/.test(v); // Only allow alphanumeric characters
+                return /^[a-zA-Z0-9!@#$%^&*()_+{}\[\]:;<>,.?/~\\-]+$/.test(v);
             },
-            message: props => `${props.value} is not a valid username!`
+            message: props => `${props.value} can only contain letters, numbers, and special characters."`
         }
     },
     email: {
@@ -68,7 +68,8 @@ const UserSchema = new Schema({
     },
     mobileNumber: {
         type: String,
-        unique: true,  // Ensure uniqueness
+        unique: false,  // No uniqueness constraint
+        sparse: true,   // Allows multiple `null` values if indexed
         validate: {
             validator: function (v) {
                 // Validate only if mobileNumber is provided
