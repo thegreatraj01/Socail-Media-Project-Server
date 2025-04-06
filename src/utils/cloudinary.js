@@ -1,28 +1,21 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
-import path from "path";
+import { fileTypeFromFile } from "file-type";  // 👈 NEW
 import { ApiError } from "./apiError.js";
 import HTTP_STATUS_CODES from "./httpStatusCodes.js";
 
+// Supported formats (you can expand this list if needed)
+const SUPPORTED_IMAGE_TYPES = ["jpg", "jpeg", "png", "webp", "gif", "bmp"];
+const SUPPORTED_VIDEO_TYPES = ["mp4", "mov", "avi", "mkv", "webm", "m4v", "3g2"];
 
-// Define folder paths for images and videos
-const imagesFolder = "ChaiOrCode/images";
-const videosFolder = "ChaiOrCode/videos";
 
-// Function to check if the file is an image or a video
-const getFolderBasedOnFileType = (localFilePath) => {
-    const ext = path.extname(localFilePath).toLowerCase();
-    if (['.jpg', '.jpeg', '.png', '.gif', '.bmp'].includes(ext)) {
-        return imagesFolder;
-    } else if (['.mp4', '.mkv', '.avi', '.mov'].includes(ext)) {
-        return videosFolder;
-    } else {
-        return null;  // Handle unsupported file types
-    }
-};
 
+
+const imagesFolder = process.env.NODE_ENV === 'production' ? "CompleteBackend/images" : "ChaiOrCode/images";
+const videosFolder = process.env.NODE_ENV === 'production' ? "CompleteBackend/videos" : "ChaiOrCode/videos";
+
+// Upload function
 const uploadOnCloudinary = async (localFilePath) => {
-    // Configuration
     cloudinary.config({
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
         api_key: process.env.CLOUDINARY_API_KEY,
@@ -31,29 +24,72 @@ const uploadOnCloudinary = async (localFilePath) => {
 
     try {
         if (!localFilePath) return null;
-        const folderName = getFolderBasedOnFileType(localFilePath);
 
-        if (!folderName) {
-            console.log("Unsupported file type.");
-            throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Unsupported file type");
+        // 👇 Detect the actual file type
+        const fileType = await fileTypeFromFile(localFilePath);
+        if (!fileType) {
+            fs.unlinkSync(localFilePath);
+            throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Could not determine file type");
         }
 
-        const response = await cloudinary.uploader.upload(localFilePath, {
-            resource_type: "auto",
-            folder: folderName,  // Upload to respective folder
-        });
+        const { ext } = fileType;
+        let folderName = null;
+        let resourceType = "auto";
 
-        // File has been uploaded successfully 
-        fs.unlinkSync(localFilePath);  // Remove the local file after successful upload
+
+        // 👇 Check if it's an image
+        if (SUPPORTED_IMAGE_TYPES.includes(ext)) {
+            folderName = imagesFolder;
+            resourceType = "image";
+        }
+        // 👇 Check if it's a video
+        else if (SUPPORTED_VIDEO_TYPES.includes(ext)) {
+            folderName = videosFolder;
+            resourceType = "video";
+        } else {
+            fs.unlinkSync(localFilePath);
+            throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, `Unsupported file type: .${ext}`);
+        }
+
+
+        let response;
+        // 👇 Upload to Cloudinary
+        if (resourceType == 'image') {
+            response = await cloudinary.uploader.upload(localFilePath, {
+                resource_type: resourceType,
+                folder: folderName,
+            });
+        } else if (resourceType == 'video') {
+            const result = await new Promise((resolve, reject) => {
+                cloudinary.uploader.upload_large(localFilePath, {
+                    resource_type: resourceType,
+                    folder: folderName,
+                    transformation: [{ width: 1920, height: 1080, crop: "fill" }],
+                    chunk_size: 10 * 1024 * 1024,
+                }, (error, result) => {
+                    if (error) {
+                        return reject(error);
+                    }
+                    resolve(result);
+                });
+            });
+            console.log("Cloudinary upload result:", result);
+            response = result;
+        } else {
+            console.log('Unexpected resource type in uploadOnCloudinary:', resourceType);
+            throw new ApiError(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR.code, "Invalid resource type");
+        }
+
+
+        if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
         return response;
 
     } catch (error) {
-        fs.unlinkSync(localFilePath);  // Remove local file if upload fails
-        console.log("Error during upload:", error.message);
-        return null;
+        if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath); // cleanup
+        console.error("Error during upload:", error);
+        throw new ApiError(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR.code, error.message);
     }
 };
-
 
 // Function to delete a file from Cloudinary pass old file link as a parameter
 const deleteFromCloudinary = async (link) => {
