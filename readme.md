@@ -1,4 +1,3 @@
-Here’s the updated `README.md` content based on your latest inputs — the backend is in a separate repo, the frontend will be in another, and MongoDB aggregation is included:
 
 ---
 
@@ -77,7 +76,7 @@ git clone https://github.com/thegreatraj01/Socail-Media-Project-Server.git
 npm install
 ```
 
-### 3. Create `.env` file
+### 3. Create `.env` file (check out the .env.sample file)
 ```
 MONGO_URL=your_mongodb_url
 JWT_SECRET=your_jwt_secret
