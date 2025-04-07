@@ -63,9 +63,13 @@ const uploadOnCloudinary = async (localFilePath) => {
             const result = await new Promise((resolve, reject) => {
                 cloudinary.uploader.upload_large(localFilePath, {
                     resource_type: resourceType,
+                    timeout: 600000,
                     folder: folderName,
-                    transformation: [{ width: 1920, height: 1080, crop: "fill" }],
                     chunk_size: 10 * 1024 * 1024,
+                    transformation: [
+                        { width: 1280, height: 720, crop: "pad", background: "black" }
+                    ],
+
                 }, (error, result) => {
                     if (error) {
                         return reject(error);
@@ -73,7 +77,6 @@ const uploadOnCloudinary = async (localFilePath) => {
                     resolve(result);
                 });
             });
-            console.log("Cloudinary upload result:", result);
             response = result;
         } else {
             console.log('Unexpected resource type in uploadOnCloudinary:', resourceType);
@@ -90,6 +93,13 @@ const uploadOnCloudinary = async (localFilePath) => {
         throw new ApiError(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR.code, error.message);
     }
 };
+
+
+
+
+
+
+// ------------------------------------------------------------------------------------
 
 // Function to delete a file from Cloudinary pass old file link as a parameter
 const deleteFromCloudinary = async (link) => {
@@ -113,4 +123,49 @@ const deleteFromCloudinary = async (link) => {
     }
 };
 
-export { uploadOnCloudinary, deleteFromCloudinary };
+
+
+
+
+
+
+const transformCloudinaryVideo = async (publicId) => {
+    try {
+        cloudinary.config({
+            cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+            api_key: process.env.CLOUDINARY_API_KEY,
+            api_secret: process.env.CLOUDINARY_API_SECRET
+        });
+
+        const result = await cloudinary.uploader.explicit(publicId, {
+            resource_type: "video",
+            type: "upload",
+            eager: [
+                {
+                    width: 1280,            // 👈 Target width
+                    height: 720,            // 👈 Target height
+                    aspect_ratio: "16:9",   // 👈 Force 16:9
+                    crop: "pad",            // 👈 Pad the video (add black bars if needed)
+                    background: "black",    // 👈 Fill with black (like YouTube)
+                    format: "mp4"           // 👈 Keep mp4
+                }
+            ],
+            eager_async: true
+        });
+
+        return result;
+    } catch (error) {
+        console.error("Error during video transformation:", error);
+        throw new ApiError(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR.code, error.message);
+    }
+};
+
+
+
+
+
+
+
+
+
+export { uploadOnCloudinary, deleteFromCloudinary, transformCloudinaryVideo };
