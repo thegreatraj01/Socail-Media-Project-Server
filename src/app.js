@@ -24,7 +24,12 @@ app.use("/api/v1", router);
 
 // Handle undefined routes
 app.all("*", (req, res, next) => {
-    next(new ApiError(HTTP_STATUS_CODES.NOT_FOUND.code, `No such route found for ${req.originalUrl}`));
+    next(
+        new ApiError(
+            HTTP_STATUS_CODES.NOT_FOUND.code,
+            `No such route found for ${req.method} ${req.originalUrl}`
+        )
+    );
 });
 
 // Global Error Handler

@@ -58,6 +58,9 @@ const uploadOnCloudinary = async (localFilePath) => {
             response = await cloudinary.uploader.upload(localFilePath, {
                 resource_type: resourceType,
                 folder: folderName,
+                transformation: [
+                    { width: 1280, height: 720, crop: "scale" }
+                ],
             });
         } else if (resourceType == 'video') {
             const result = await new Promise((resolve, reject) => {

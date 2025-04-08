@@ -1,10 +1,9 @@
-import mongoose, { isValidObjectId } from "mongoose"
+import { isValidObjectId } from "mongoose"
 import { Video } from "../models/video.model.js"
-import User from "../models/user.model.js"
 import { ApiError } from "../utils/apiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
-import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js"
 import HTTP_STATUS_CODES from "../utils/httpStatusCodes.js"
 
 
@@ -14,9 +13,9 @@ const getAllVideos = asyncHandler(async (req, res) => {
         page = 1,
         limit = 10,
         query = "",
-        sortByDate = "newest",       
-        sortByDuration,             
-        sortByViews,                 
+        sortByDate = "newest",
+        sortByDuration,
+        sortByViews,
         userId,
     } = req.query;
 
@@ -209,25 +208,168 @@ const publishAVideo = asyncHandler(async (req, res) => {
     );
 });
 
-
+// DONE:  API Testing ✅ (Completed)
 const getVideoById = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
-    //TODO: get video by id
-})
+    const { videoId } = req.params;
+    console.log()
 
+    // Validate video ID
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(
+            HTTP_STATUS_CODES.BAD_REQUEST.code,
+            "Invalid video ID"
+        );
+    }
+
+    // Find video and populate the owner details
+    const video = await Video.findById(videoId)
+        .populate("owner", "username avatar")
+        .lean();
+
+    // If video not found or unpublished
+    if (!video || !video.isPublished) {
+        throw new ApiError(
+            HTTP_STATUS_CODES.NOT_FOUND.code,
+            "Video not found"
+        );
+    }
+
+    return res.status(HTTP_STATUS_CODES.OK.code).json(
+        new ApiResponse(HTTP_STATUS_CODES.OK.code, video, "Video fetched successfully")
+    );
+});
+
+
+// DONE:  API Testing ✅ (Completed)
 const updateVideo = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
-    //TODO: update video details like title, description, thumbnail
+    const { videoId } = req.params;
+    const newThumbnail = req.file;
+    const { title, description } = req.body;
+
+    if (!(newThumbnail || title || description)) {
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "give any feild to update thumbnail , title or description");
+    }
+
+    console.log(newThumbnail);
+
+    if (!videoId) {
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Please give a video id");
+
+    }
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Invalid video ID");
+    }
+
+    const video = await Video.findById(videoId);
+    if (!video) {
+        throw new ApiError(HTTP_STATUS_CODES.NOT_FOUND.code, "Video not found");
+    }
+
+    if (video.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(HTTP_STATUS_CODES.FORBIDDEN.code, "You are not authorized to modify video details ");
+    }
+
+
+    if (newThumbnail) {
+        const oldThumbnail = video.thumbnail;
+        const response = await uploadOnCloudinary(newThumbnail.path);
+        await deleteFromCloudinary(oldThumbnail);
+        video.thumbnail = response.secure_url;
+    };
+
+    if (title) {
+        video.title = title;
+    }
+    if (description) {
+        video.description = description;
+    }
+
+    const updatedVideo = await video.save();
+
+
+    res.status(HTTP_STATUS_CODES.OK.code).json(
+        new ApiResponse(
+            HTTP_STATUS_CODES.OK.code,
+            updatedVideo,
+            "video updated successfully"
+        )
+    )
 
 })
 
+// DONE:  API Testing ✅ (Completed)
 const deleteVideo = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
-    //TODO: delete video
-})
+    const { videoId } = req.params;
 
+    if (!videoId) {
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Please give a video id");
+
+    }
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Invalid video ID");
+    }
+
+    const video = await Video.findById(videoId);
+    if (!video) {
+        throw new ApiError(HTTP_STATUS_CODES.NOT_FOUND.code, "Video not found");
+    }
+
+    if (video.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(HTTP_STATUS_CODES.FORBIDDEN.code, "You are not authorized to delete this video");
+    }
+
+    await deleteFromCloudinary(video.videoFile);
+    await deleteFromCloudinary(video.thumbnail);
+
+    // 5. Delete the video document
+    await video.deleteOne();
+
+    return res.status(HTTP_STATUS_CODES.OK.code).json(
+        new ApiResponse(HTTP_STATUS_CODES.OK.code, null, "Video deleted successfully")
+    );
+});
+
+// DONE:  API Testing ✅ (Completed)
 const togglePublishStatus = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
+    const { videoId } = req.params;
+
+    if (!videoId) {
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Please give a video id");
+
+    }
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Invalid video ID");
+    }
+
+    const video = await Video.findById(videoId);
+    if (!video) {
+        throw new ApiError(HTTP_STATUS_CODES.NOT_FOUND.code, "Video not found");
+    }
+
+    if (video.owner.toString() !== req.user._id.toString()) {
+        throw new ApiError(HTTP_STATUS_CODES.FORBIDDEN.code, "You are not authorized to modify publish status this video");
+    }
+
+    const currentStatus = video.isPublished;
+
+    video.isPublished = !currentStatus;
+
+    const newStatus = await video.save()
+
+
+    res.status(HTTP_STATUS_CODES.OK.code).json(
+        new ApiResponse(
+            HTTP_STATUS_CODES.OK.code,
+            newStatus,
+            "Video status changed successfully"
+        )
+    )
+
+
+
 })
 
 export {
