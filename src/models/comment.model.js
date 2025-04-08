@@ -5,7 +5,8 @@ const commentSchema = new Schema(
     {
         content: {
             type: String,
-            required: true
+            required: true,
+            maxlength: [5000, 'Content cannot exceed 5000 characters']
         },
         video: {
             type: Schema.Types.ObjectId,
