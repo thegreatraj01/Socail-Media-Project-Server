@@ -8,11 +8,117 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import HTTP_STATUS_CODES from "../utils/httpStatusCodes.js"
 
 
+// DONE:  API Testing ✅ (Completed)
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
-    //TODO: get all videos based on query, sort, pagination
-})
+    const {
+        page = 1,
+        limit = 10,
+        query = "",
+        sortByDate = "newest",       
+        sortByDuration,             
+        sortByViews,                 
+        userId,
+    } = req.query;
 
+    // Validate page and limit
+    const pageNumber = parseInt(page, 10);
+    const pageSize = parseInt(limit, 10);
+
+    if (isNaN(pageNumber) || pageNumber < 1) {
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Invalid 'page' value. Must be a number ≥ 1.");
+    }
+
+    if (isNaN(pageSize) || pageSize < 1) {
+        throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Invalid 'limit' value. Must be a number ≥ 1.");
+    }
+
+    const skip = (pageNumber - 1) * pageSize;
+
+    const filter = { isPublished: true };
+
+    // Full-text search
+    if (query) {
+        filter.$or = [
+            { title: { $regex: query, $options: "i" } },
+            { description: { $regex: query, $options: "i" } }
+        ];
+    }
+
+    // Validate and apply userId
+    if (userId) {
+        if (!isValidObjectId(userId)) {
+            throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Invalid 'userId'. Must be a valid MongoDB ObjectId.");
+        }
+        filter.owner = userId;
+    }
+
+    // Sort options mapping
+    const sortOptions = {};
+
+    // Date sorting
+    if (sortByDate) {
+        if (sortByDate === "newest") {
+            sortOptions.createdAt = -1;
+        } else if (sortByDate === "oldest") {
+            sortOptions.createdAt = 1;
+        } else {
+            throw new ApiError(
+                HTTP_STATUS_CODES.BAD_REQUEST.code,
+                "Invalid 'sortByDate'. Accepted values: newest, oldest"
+            );
+        }
+    }
+
+    // Duration sorting
+    if (sortByDuration) {
+        if (sortByDuration === "shortest") {
+            sortOptions.duration = 1;
+        } else if (sortByDuration === "longest") {
+            sortOptions.duration = -1;
+        } else {
+            throw new ApiError(
+                HTTP_STATUS_CODES.BAD_REQUEST.code,
+                "Invalid 'sortByDuration'. Accepted values: shortest, longest"
+            );
+        }
+    }
+
+    // Views sorting
+    if (sortByViews) {
+        if (sortByViews === "highToLow") {
+            sortOptions.views = -1;
+        } else if (sortByViews === "lowToHigh") {
+            sortOptions.views = 1;
+        } else {
+            throw new ApiError(
+                HTTP_STATUS_CODES.BAD_REQUEST.code,
+                "Invalid 'sortByViews'. Accepted values: highToLow, lowToHigh"
+            );
+        }
+    }
+
+    const totalVideos = await Video.countDocuments(filter);
+
+    const videos = await Video.find(filter)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(pageSize)
+        .populate("owner", "username avatar")
+        .lean();
+
+    return res.status(HTTP_STATUS_CODES.OK.code).json(
+        new ApiResponse(HTTP_STATUS_CODES.OK.code, {
+            page: pageNumber,
+            limit: pageSize,
+            totalResults: totalVideos,
+            totalPages: Math.ceil(totalVideos / pageSize),
+            results: videos
+        }, "Videos fetched successfully")
+    );
+});
+
+
+// DONE:  API Testing ✅ (Completed)
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description } = req.body;
 
@@ -102,7 +208,6 @@ const publishAVideo = asyncHandler(async (req, res) => {
         )
     );
 });
-
 
 
 const getVideoById = asyncHandler(async (req, res) => {
