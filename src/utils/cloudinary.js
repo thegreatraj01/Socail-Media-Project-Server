@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import { fileTypeFromFile } from "file-type";  // 👈 NEW
-import { ApiError } from "./apiError.js";
+import { ApiError } from "./ApiError.js";
 import HTTP_STATUS_CODES from "./httpStatusCodes.js";
 
 // Supported formats (you can expand this list if needed)
