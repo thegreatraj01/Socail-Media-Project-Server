@@ -4,11 +4,13 @@ const playlistSchema = new Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "Playlist name is required"],
+      maxlength: [120, "Max length is 120 characters"],
     },
     description: {
       type: String,
-      required: true,
+      required: [true, "Playlist description is required"],
+      maxlength: [500, "Max length is 500 characters"],
     },
     videos: [
       {
@@ -19,6 +21,7 @@ const playlistSchema = new Schema(
     owner: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      required: [true, "Playlist owner is required"],
     },
   },
   { timestamps: true }

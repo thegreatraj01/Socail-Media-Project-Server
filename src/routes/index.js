@@ -5,11 +5,13 @@ import videoRouter from "./video.routes.js";
 import commentRouter from "./comment.routes.js";
 import tweetRouter from "./tweet.routes.js";
 import healtCheckRouter from "./healthcheck.routes.js";
+import playlistRouter from "./playlist.routes.js";
 
 router.use("/users", userRouter);
 router.use("/video", videoRouter);
 router.use("/comment", commentRouter);
 router.use("/tweet", tweetRouter);
 router.use("/healthcheck", healtCheckRouter);
+router.use("/playlist", playlistRouter);
 
 export default router;
