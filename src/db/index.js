@@ -7,15 +7,15 @@ const dbUri =
     : process.env.DEV_DATABASE_URL;
 
 const connectDB = async () => {
-    try {
-        const connectionInstance = await mongoose.connect(`${dbUri}/${DBNAME}`);
-        console.log(`\n mongodb Connected  !! DB host  ${connectionInstance.connection.host}`)
-    } catch (error) {
-        console.log(`MongoDb connection error: ${error}`);
-        throw error;
-    }
-}
-
+  try {
+    const connectionInstance = await mongoose.connect(`${dbUri}/${DBNAME}`);
+    console.log(
+      `\n mongodb Connected  !! DB host  ${connectionInstance.connection.host}`
+    );
+  } catch (error) {
+    console.log(`MongoDb connection error: ${error}`);
+    throw error;
+  }
+};
 
 export default connectDB;
-

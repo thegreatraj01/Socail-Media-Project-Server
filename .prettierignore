@@ -4,6 +4,7 @@ node_modules/
 # Ignore specific files
 dist/
 build/
+Notes/
 
 # Ignore all files with a .md extension
 *.md

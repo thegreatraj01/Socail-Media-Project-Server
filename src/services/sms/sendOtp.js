@@ -1,8 +1,8 @@
-import twilio from 'twilio';
+import twilio from "twilio";
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const from = process.env.TWILIO_MOBILE_NUMBER;
-import OTP from '../../models/otp.model.js';
+import OTP from "../../models/otp.model.js";
 const client = new twilio(accountSid, authToken);
 
 // client.messages
@@ -14,21 +14,20 @@ const client = new twilio(accountSid, authToken);
 //     .then(message => console.log(message.sid));
 
 const sendOtp = async (userId, mobileNumber) => {
-    const otp = await OTP.generateAndSaveOTP(userId);
-    try {
-        const message = await client.messages
-            .create({
-                from,
-                to: `+91${mobileNumber}`,
-                body: `Your Otp to verify your Number is ${otp.otp} 
+  const otp = await OTP.generateAndSaveOTP(userId);
+  try {
+    const message = await client.messages.create({
+      from,
+      to: `+91${mobileNumber}`,
+      body: `Your Otp to verify your Number is ${otp.otp} 
                 valid for 10 minute `,
-            })
-        // console.log(message);
-        return otp;
-    } catch (error) {
-        console.log(error);
-        return 'error genrating otp for mobile verificaiton';
-    }
+    });
+    // console.log(message);
+    return otp;
+  } catch (error) {
+    console.log(error);
+    return "error genrating otp for mobile verificaiton";
+  }
 };
 
 export default sendOtp;

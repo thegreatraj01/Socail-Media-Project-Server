@@ -9,14 +9,16 @@ import router from "./routes/index.js";
 const app = express();
 
 // Middleware
-app.use(cors({
+app.use(
+  cors({
     origin: process.env.CORS_ORIGIN || "http://localhost:3000",
-    credentials: true
-}));
+    credentials: true,
+  })
+);
 
-app.use(express.json({ limit: '16kb' }));
-app.use(express.urlencoded({ extended: true, limit: '16kb' }));
-app.use(express.static('public'));
+app.use(express.json({ limit: "16kb" }));
+app.use(express.urlencoded({ extended: true, limit: "16kb" }));
+app.use(express.static("public"));
 app.use(cookieParser());
 
 // Routes
@@ -24,12 +26,12 @@ app.use("/api/v1", router);
 
 // Handle undefined routes
 app.all("*", (req, res, next) => {
-    next(
-        new ApiError(
-            HTTP_STATUS_CODES.NOT_FOUND.code,
-            `No such route found for ${req.method} ${req.originalUrl}`
-        )
-    );
+  next(
+    new ApiError(
+      HTTP_STATUS_CODES.NOT_FOUND.code,
+      `No such route found for ${req.method} ${req.originalUrl}`
+    )
+  );
 });
 
 // Global Error Handler

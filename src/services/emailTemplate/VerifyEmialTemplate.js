@@ -1,10 +1,11 @@
-export default function verifyEmail(username = 'Raj', otp = "1234") {
-    const otpDigits = otp.split('');
+export default function verifyEmail(username = "Raj", otp = "1234") {
+  const otpDigits = otp.split("");
 
-    const otpElements = otpDigits.map((digit) => `<p style="margin-left: 8px;" class="otpbox">${digit}</p>`).join('');
+  const otpElements = otpDigits
+    .map((digit) => `<p style="margin-left: 8px;" class="otpbox">${digit}</p>`)
+    .join("");
 
-    
-    return `<html lang="en">
+  return `<html lang="en">
     <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

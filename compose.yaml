@@ -4,7 +4,7 @@ services:
   server:
     build:
       context: .
-    env_file: .env.docker  # <- loads variables from .env file
+    env_file: .env.docker # <- loads variables from .env file
     ports:
-      - "${PORT}:8000"  # use env variable
+      - "${PORT}:8000" # use env variable
     container_name: complite_backend
