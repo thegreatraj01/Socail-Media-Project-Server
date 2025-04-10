@@ -6,6 +6,7 @@ import commentRouter from "./comment.routes.js";
 import tweetRouter from "./tweet.routes.js";
 import healtCheckRouter from "./healthcheck.routes.js";
 import playlistRouter from "./playlist.routes.js";
+import likeRouter from "./like.routes.js";
 
 router.use("/users", userRouter);
 router.use("/video", videoRouter);
@@ -13,5 +14,6 @@ router.use("/comment", commentRouter);
 router.use("/tweet", tweetRouter);
 router.use("/healthcheck", healtCheckRouter);
 router.use("/playlist", playlistRouter);
+router.use("/like", likeRouter);
 
 export default router;

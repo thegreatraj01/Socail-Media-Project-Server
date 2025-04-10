@@ -1,5 +1,5 @@
 // Contains standardized HTTP status codes used in API responses.
-export const HTTP_STATUS_CODES = {
+const HTTP_STATUS_CODES = {
   // Informational responses (100–199)
   CONTINUE: { code: 100, message: "Request received, continue processing." },
   SWITCHING_PROTOCOLS: {

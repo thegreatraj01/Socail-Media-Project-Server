@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import HTTP_STATUS_CODES from "./utils/httpStatusCodes.js";
-import { ApiError } from "./utils/apiError.js";
+import { ApiError } from "./utils/ApiError.js";
 import globalErrorHandler from "./utils/globleErrorHandler.js";
 import router from "./routes/index.js";
 
