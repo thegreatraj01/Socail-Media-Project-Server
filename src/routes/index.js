@@ -8,6 +8,7 @@ import healtCheckRouter from "./healthcheck.routes.js";
 import playlistRouter from "./playlist.routes.js";
 import likeRouter from "./like.routes.js";
 import subscriptionRouter from "./subscription.routes.js";
+import dashboardRouter from "./dashboard.routes.js";
 
 router.use("/users", userRouter);
 router.use("/video", videoRouter);
@@ -17,5 +18,6 @@ router.use("/healthcheck", healtCheckRouter);
 router.use("/playlist", playlistRouter);
 router.use("/like", likeRouter);
 router.use("/subs", subscriptionRouter);
+router.use("/dash", dashboardRouter);
 
 export default router;

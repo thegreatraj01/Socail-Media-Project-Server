@@ -530,7 +530,10 @@ export const getUserChannelProfile = asyncHandler(async (req, res) => {
 });
 
 export const getUserWatchHistory = asyncHandler(async (req, res) => {
-  const userId = mongoose.Types.ObjectId(req.user._id);
+  // const userId = new mongoose.Types.ObjectId(req.user._id);
+  const userId = mongoose.Types.ObjectId.createFromHexString(
+    req.user._id.toString()
+  );
 
   const user = await User.aggregate([
     { $match: { _id: userId } },
@@ -571,11 +574,13 @@ export const getUserWatchHistory = asyncHandler(async (req, res) => {
   if (!user || !user.length) {
     return res
       .status(HTTP_STATUS_CODES.NOT_FOUND.code)
-      .json(new ApiResponse(
-        HTTP_STATUS_CODES.NOT_FOUND.code,
-        [],
-        "User or watch history not found"
-      ));
+      .json(
+        new ApiResponse(
+          HTTP_STATUS_CODES.NOT_FOUND.code,
+          [],
+          "User or watch history not found"
+        )
+      );
   }
 
   return res
@@ -588,4 +593,3 @@ export const getUserWatchHistory = asyncHandler(async (req, res) => {
       )
     );
 });
-
