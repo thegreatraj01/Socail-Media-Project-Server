@@ -530,12 +530,10 @@ export const getUserChannelProfile = asyncHandler(async (req, res) => {
 });
 
 export const getUserWatchHistory = asyncHandler(async (req, res) => {
+  const userId = mongoose.Types.ObjectId(req.user._id);
+
   const user = await User.aggregate([
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(req.user._id),
-      },
-    },
+    { $match: { _id: userId } },
     {
       $lookup: {
         from: "videos",
@@ -550,7 +548,6 @@ export const getUserWatchHistory = asyncHandler(async (req, res) => {
               foreignField: "_id",
               as: "owner",
               pipeline: [
-                // try to select data in second pipeline dont use a pipeline here
                 {
                   $project: {
                     userName: 1,
@@ -563,15 +560,23 @@ export const getUserWatchHistory = asyncHandler(async (req, res) => {
           },
           {
             $addFields: {
-              owener: {
-                $first: "$owner",
-              },
+              owner: { $first: "$owner" }, // fixed typo here
             },
           },
         ],
       },
     },
   ]);
+
+  if (!user || !user.length) {
+    return res
+      .status(HTTP_STATUS_CODES.NOT_FOUND.code)
+      .json(new ApiResponse(
+        HTTP_STATUS_CODES.NOT_FOUND.code,
+        [],
+        "User or watch history not found"
+      ));
+  }
 
   return res
     .status(HTTP_STATUS_CODES.OK.code)
@@ -583,3 +588,4 @@ export const getUserWatchHistory = asyncHandler(async (req, res) => {
       )
     );
 });
+
