@@ -9,9 +9,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
 import fs from "fs";
 import mongoose from "mongoose";
-import sendOtp from "../services/sms/sendOtp.js";
 import HTTP_STATUS_CODES from "../utils/httpStatusCodes.js";
-import { Http2ServerRequest } from "http2";
 
 export const genrateAccessAndRefreshTokens = async (userId) => {
   try {

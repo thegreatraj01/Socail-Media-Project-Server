@@ -11,9 +11,9 @@ router.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
 router
   .route("/c/:channelId")
-  .get(getSubscribedChannels)
-  .post(toggleSubscription);
+  .get(getSubscribedChannels) // all channel subscribed by current user
+  .post(toggleSubscription); // subscribe and unsubcribe
 
-router.route("/u/:subscriberId").get(getUserChannelSubscribers);
+router.route("/getallsubscriber").get(getUserChannelSubscribers); // user channel all subscriber
 
 export default router;
