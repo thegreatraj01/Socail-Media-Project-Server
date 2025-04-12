@@ -8,7 +8,9 @@ const dbUri =
 
 const connectDB = async () => {
   try {
-    const connectionInstance = await mongoose.connect(`${dbUri}/${DBNAME}`);
+    const connectionInstance = await mongoose.connect(
+      `${dbUri}/${DBNAME}?retryWrites=true&w=majority&appName=Cluster0`
+    );
     console.log(
       `\n mongodb Connected  !! DB host  ${connectionInstance.connection.host}`
     );

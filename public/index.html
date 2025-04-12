@@ -1,12 +1,119 @@
 <!doctype html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-  </head>
+    <title>My Project Information</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
 
-  <body>
+        h1, h2 {
+            color: #007bff;
+        }
+
+        section {
+            background-color: #fff;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        p {
+            margin-bottom: 10px;
+        }
+
+        a {
+            color: #28a745;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #343a40;
+            color: #fff;
+            border-radius: 4px;
+        }
+
+        .postman-steps {
+            margin-top: 15px;
+            padding-left: 20px;
+        }
+
+        .postman-steps li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
     <h1>Hi I am Raj</h1>
-  </body>
+
+    <section>
+        <h2>Project Details</h2>
+        <p>Check out the source code for this project on GitHub:</p>
+        <p>
+            <a href="https://github.com/thegreatraj01/Socail-Media-Project-Server" target="_blank">
+                GitHub - Social Media Project Server
+            </a>
+        </p>
+    </section>
+
+    <section>
+        <h2>Contact Me</h2>
+        <p>Feel free to reach out via email:</p>
+        <p>
+            <a href="mailto:rajballavkumar1432@gmail.com">
+                rajballavkumar1432@gmail.com
+            </a>
+        </p>
+    </section>
+
+    <section>
+        <h2>Run API Endpoints with Postman</h2>
+        <p>Click the button below to fork the Postman collection and explore the API endpoints.</p>
+        <div class="postman-run-button"
+            data-postman-action="collection/fork"
+            data-postman-visibility="public"
+            data-postman-var-1="29595192-ed170205-442f-481c-815d-4de60cf35a66"
+            data-postman-collection-url="entityId=29595192-ed170205-442f-481c-815d-4de60cf35a66&entityType=collection&workspaceId=415ac1f4-ee68-49a4-83b7-ee47b0a7a8c2">
+        </div>
+        <script type="text/javascript">
+            (function (p,o,s,t,m,a,n) {
+                !p[s] && (p[s] = function () { (p[t] || (p[t] = [])).push(arguments); });
+                !o.getElementById(s+t) && o.getElementsByTagName("head")[0].appendChild((
+                    (n = o.createElement("script")),
+                    (n.id = s+t), (n.async = 1), (n.src = m), n
+                ));
+            }(window, document, "_pm", "PostmanRunObject", "https://run.pstmn.io/button.js"));
+        </script>
+
+        <div class="postman-steps">
+            <p><strong>Steps to explore the API in Postman:</strong></p>
+            <ol>
+                <li>Go to the collection named: <strong>Complete Backend(Node.js)</strong> In User folder</li>
+                <li>Navigate to the <strong>register</strong> request and send it to create a new user (you don't need to fill in specific details right now).</li>
+                <li>Next, go to the <strong>login</strong> request and send it to log in.</li>
+                <li>Once you are logged in (you might receive a token or session), you can then navigate to and send any other API requests within the collection.</li>
+            </ol>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2025 Raj - All Rights Reserved.</p>
+    </footer>
+
+</body>
 </html>
