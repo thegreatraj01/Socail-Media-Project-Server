@@ -1,13 +1,14 @@
-# Social Media App (MERN)
+# Social Media App (MERN + Socket.io)
 
-A full-stack social media web application built using the MERN stack (MongoDB, Express.js, React.js, Node.js). The app allows users to register, log in, create posts, like, and comment on others' posts. Image uploads are handled via Cloudinary, and user authentication is secured using JWT.
+A full-stack social media web application built using the MERN stack with real-time chat functionality. The app includes user authentication, post creation, interactions, and now features real-time messaging powered by Socket.io.
 
 ## 🚧 Status
 
-**In Progress** – Features are actively being developed and improved.
+**In Progress** – Actively adding new features including enhanced real-time functionality.
 
 ## 🔥 Features
 
+### Core Features
 - User registration and login (JWT authentication)
 - Image upload with Cloudinary
 - Create, update, delete posts
@@ -15,10 +16,17 @@ A full-stack social media web application built using the MERN stack (MongoDB, E
 - MongoDB Aggregation for efficient data querying
 - Email OTP verification for password reset *(Coming Soon)*
 
+### New Real-time Features
+- Real-time chat using Socket.io
+- Typing indicators 
+- Online status tracking *(Coming Soon)*
+- Message read receipts *(Coming Soon)*
+
 ## 🛠 Tech Stack
 
 - **Frontend:** Next.js, Tailwind CSS, TypeScript *(Planned)*
 - **Backend:** Node.js, Express.js (Dockerized)
+- **Real-time:** Socket.io
 - **Database:** MongoDB (with Aggregation Framework)
 - **Authentication:** JWT
 - **Image Hosting:** Cloudinary
@@ -31,7 +39,9 @@ The backend is deployed using a Docker image on Render:
 
 **API Base URL:** [https://node-js-social-media-7t1g.onrender.com/](https://node-js-social-media-7t1g.onrender.com/)
 
-## 📁 Folder Structure (Backend)
+**WebSocket URL:** `wss://node-js-social-media-7t1g.onrender.com`
+
+## 📁 Updated Folder Structure (Backend)
 
 ```
 server/
@@ -39,18 +49,23 @@ server/
 │   └── temp/                  # Temporary storage for uploads
 ├── src/
 │   ├── controllers/           # Route logic handlers
+│   │   └── chatController.js  # New chat controller
 │   ├── db/                    # Database connection and seeding
-│   ├── middlewares/          # Express middleware (e.g., auth)
+│   ├── middlewares/           # Express middleware (e.g., auth)
 │   ├── models/                # Mongoose models
+│   │   └── chatModel.js       # New chat models
 │   ├── routes/                # API route definitions
+│   │   └── chatRoutes.js      # New chat routes
 │   ├── services/
 │   │   ├── email/             # Email service logic
 │   │   ├── emailTemplate/     # Email template files
-│   │   └── sms/               # SMS service logic
+│   │   ├── sms/               # SMS service logic
+│   │   └── socket/            # Socket.io service logic
 │   └── utils/                 # Helper utility functions
 ├── app.js                     # Express app configuration
 ├── constant.js                # App-wide constants
-└── index.js                   # Entry point
+├── index.js                   # Entry point (now with Socket.io setup)
+└── socket.js                  # Socket.io configuration
 ```
 
 ## 🧪 Run Locally
@@ -72,6 +87,7 @@ JWT_SECRET=your_jwt_secret
 CLOUDINARY_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
+SOCKET_PORT=your_socket_port # Optional, defaults to 8001
 ```
 
 ### 4. Start development server
@@ -85,18 +101,23 @@ You can test the API using Postman:
 
 **Postman Collection:** [Click to open](https://www.postman.com/cryosat-astronomer-35135276/workspace/my-workspace/collection/29595192-ed170205-442f-481c-815d-4de60cf35a66?action=share&creator=29595192)
 
-### ✅ Steps to Test:
-1. Open the Postman collection link.
-2. Navigate to the `user` folder.
-3. Use the `register` request (default values are pre-filled).
-4. Use the `login` request.
-5. Hit any other API from the collection.
+### New Chat Endpoints:
+- `POST /api/chat` - Create new chat
+- `GET /api/chat/:userId` - Get user chats
+- `GET /api/message/:chatId` - Get chat messages
+- `POST /api/message` - Send new message
 
 ## 🌐 Live Demo
-
-Frontend coming soon…
+https://node-js-social-media-7t1g.onrender.com/chat.html
 
 ## 🤝 Contributing
 
 Pull requests are welcome! For major changes, please open an issue first to discuss what you'd like to change.
 
+## 🚀 Future Plans
+- Implement group chats
+- Add message reactions
+- Implement file sharing in chats
+- Voice/video calling integration
+
+---
