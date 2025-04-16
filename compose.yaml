@@ -4,7 +4,8 @@ services:
   server:
     build:
       context: .
-    env_file: .env.docker # <- loads variables from .env file
+    image: thegreatraj01/node.js_social_media
+    env_file: .env.docker
     ports:
-      - "${PORT}:8000" # use env variable
+      - "${PORT}:8000"
     container_name: complete_backend

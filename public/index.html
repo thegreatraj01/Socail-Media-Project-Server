@@ -1,119 +1,225 @@
 <!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>My Project Information</title>
     <style>
-        body {
-            font-family: sans-serif;
-            line-height: 1.6;
-            margin: 20px;
-            background-color: #f4f4f4;
-            color: #333;
+      body {
+        font-family: sans-serif;
+        line-height: 1.6;
+        margin: 20px;
+        background-color: #f4f4f4;
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* Center content horizontally */
+        justify-content: flex-start;
+        /* Align items from the top */
+        min-height: 100vh;
+        /* Ensure the body takes at least the full viewport height */
+      }
+
+      h1 {
+        color: #007bff;
+        margin-bottom: 20px;
+        /* Add some space below the main heading */
+      }
+
+      .chat-link-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        /* Add some space below the link */
+      }
+
+      .chat-link {
+        color: #28a745;
+        text-decoration: none;
+        font-weight: bold;
+        font-size: 1.2em;
+        padding: 10px 15px;
+        border: 2px solid #28a745;
+        border-radius: 5px;
+        transition:
+          background-color 0.3s ease,
+          color 0.3s ease,
+          transform 0.2s ease-in-out;
+      }
+
+      .chat-link:hover {
+        background-color: #28a745;
+        color: white;
+        transform: scale(1.05);
+      }
+
+      .blinking-arrow {
+        display: inline-block;
+        margin-left: 10px;
+        font-size: 1.5em;
+        color: #ffc107;
+        animation: blink 1s infinite alternate;
+      }
+
+      @keyframes blink {
+        from {
+          opacity: 1;
+          transform: translateX(0);
         }
 
-        h1, h2 {
-            color: #007bff;
+        to {
+          opacity: 0.5;
+          transform: translateX(5px);
         }
+      }
 
-        section {
-            background-color: #fff;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
+      section {
+        background-color: #fff;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        width: 80%;
+        /* Adjust width as needed */
+        max-width: 600px;
+        /* Set a maximum width */
+      }
 
-        p {
-            margin-bottom: 10px;
-        }
+      p {
+        margin-bottom: 10px;
+      }
 
-        a {
-            color: #28a745;
-            text-decoration: none;
-        }
+      a {
+        color: #28a745;
+        text-decoration: none;
+      }
 
-        a:hover {
-            text-decoration: underline;
-        }
+      a:hover {
+        text-decoration: underline;
+      }
 
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #343a40;
-            color: #fff;
-            border-radius: 4px;
-        }
+      footer {
+        text-align: center;
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #343a40;
+        color: #fff;
+        border-radius: 4px;
+        width: 100%;
+        /* Make footer full width */
+        position: sticky;
+        bottom: 0;
+        /* Stick footer to the bottom */
+      }
 
-        .postman-steps {
-            margin-top: 15px;
-            padding-left: 20px;
-        }
+      .postman-steps {
+        margin-top: 15px;
+        padding-left: 20px;
+      }
 
-        .postman-steps li {
-            margin-bottom: 5px;
-        }
+      .postman-steps li {
+        margin-bottom: 5px;
+      }
     </style>
-</head>
-<body>
+  </head>
 
+  <body>
     <h1>Hi I am Raj</h1>
 
+    <div class="chat-link-container">
+      <a href="chat.html" class="chat-link">Go to Chat App</a>
+      <span class="blinking-arrow">&raquo;</span>
+    </div>
+
     <section>
-        <h2>Project Details</h2>
-        <p>Check out the source code for this project on GitHub:</p>
-        <p>
-            <a href="https://github.com/thegreatraj01/Socail-Media-Project-Server" target="_blank">
-                GitHub - Social Media Project Server
-            </a>
-        </p>
+      <h2>Project Details</h2>
+      <p>Check out the source code for this project on GitHub:</p>
+      <p>
+        <a
+          href="https://github.com/thegreatraj01/Socail-Media-Project-Server"
+          target="_blank"
+        >
+          GitHub - Social Media Project Server
+        </a>
+      </p>
     </section>
 
     <section>
-        <h2>Contact Me</h2>
-        <p>Feel free to reach out via email:</p>
-        <p>
-            <a href="mailto:rajballavkumar1432@gmail.com">
-                rajballavkumar1432@gmail.com
-            </a>
-        </p>
+      <h2>Contact Me</h2>
+      <p>Feel free to reach out via email:</p>
+      <p>
+        <a href="mailto:rajballavkumar1432@gmail.com">
+          rajballavkumar1432@gmail.com
+        </a>
+      </p>
     </section>
 
     <section>
-        <h2>Run API Endpoints with Postman</h2>
-        <p>Click the button below to fork the Postman collection and explore the API endpoints.</p>
-        <div class="postman-run-button"
-            data-postman-action="collection/fork"
-            data-postman-visibility="public"
-            data-postman-var-1="29595192-ed170205-442f-481c-815d-4de60cf35a66"
-            data-postman-collection-url="entityId=29595192-ed170205-442f-481c-815d-4de60cf35a66&entityType=collection&workspaceId=415ac1f4-ee68-49a4-83b7-ee47b0a7a8c2">
-        </div>
-        <script type="text/javascript">
-            (function (p,o,s,t,m,a,n) {
-                !p[s] && (p[s] = function () { (p[t] || (p[t] = [])).push(arguments); });
-                !o.getElementById(s+t) && o.getElementsByTagName("head")[0].appendChild((
-                    (n = o.createElement("script")),
-                    (n.id = s+t), (n.async = 1), (n.src = m), n
-                ));
-            }(window, document, "_pm", "PostmanRunObject", "https://run.pstmn.io/button.js"));
-        </script>
+      <h2>Run API Endpoints with Postman</h2>
+      <p>
+        Click the button below to fork the Postman collection and explore the
+        API endpoints.
+      </p>
+      <div
+        class="postman-run-button"
+        data-postman-action="collection/fork"
+        data-postman-visibility="public"
+        data-postman-var-1="29595192-ed170205-442f-481c-815d-4de60cf35a66"
+        data-postman-collection-url="entityId=29595192-ed170205-442f-481c-815d-4de60cf35a66&entityType=collection&workspaceId=415ac1f4-ee68-49a4-83b7-ee47b0a7a8c2"
+      ></div>
+      <script type="text/javascript">
+        (function (p, o, s, t, m, a, n) {
+          !p[s] &&
+            (p[s] = function () {
+              (p[t] || (p[t] = [])).push(arguments);
+            });
+          !o.getElementById(s + t) &&
+            o
+              .getElementsByTagName("head")[0]
+              .appendChild(
+                ((n = o.createElement("script")),
+                (n.id = s + t),
+                (n.async = 1),
+                (n.src = m),
+                n)
+              );
+        })(
+          window,
+          document,
+          "_pm",
+          "PostmanRunObject",
+          "https://run.pstmn.io/button.js"
+        );
+      </script>
 
-        <div class="postman-steps">
-            <p><strong>Steps to explore the API in Postman:</strong></p>
-            <ol>
-                <li>Go to the collection named: <strong>Complete Backend(Node.js)</strong> In User folder</li>
-                <li>Navigate to the <strong>register</strong> request and send it to create a new user (you don't need to fill in specific details right now).</li>
-                <li>Next, go to the <strong>login</strong> request and send it to log in.</li>
-                <li>Once you are logged in (you might receive a token or session), you can then navigate to and send any other API requests within the collection.</li>
-            </ol>
-        </div>
+      <div class="postman-steps">
+        <p><strong>Steps to explore the API in Postman:</strong></p>
+        <ol>
+          <li>
+            Go to the collection named:
+            <strong>Complete Backend(Node.js)</strong> In User folder
+          </li>
+          <li>
+            Navigate to the <strong>register</strong> request and send it to
+            create a new user (you don't need to fill in specific details right
+            now).
+          </li>
+          <li>
+            Next, go to the <strong>login</strong> request and send it to log
+            in.
+          </li>
+          <li>
+            Once you are logged in (you might receive a token or session), you
+            can then navigate to and send any other API requests within the
+            collection.
+          </li>
+        </ol>
+      </div>
     </section>
 
     <footer>
-        <p>&copy; 2025 Raj - All Rights Reserved.</p>
+      <p>&copy; 2025 Raj - All Rights Reserved.</p>
     </footer>
-
-</body>
+  </body>
 </html>

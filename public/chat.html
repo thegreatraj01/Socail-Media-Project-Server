@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Chat</title>
+    <style>
+      /* Global Box Sizing */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        height: 100%;
+        /* Background for the area outside the main chat body */
+        background-color: #dadada;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        /* NEW: Set max width and center the body */
+        max-width: 75%;
+        margin: 20px auto; /* 20px top/bottom, auto left/right for centering */
+        /* REMOVED direct body padding */
+        background-color: #f5f5f5; /* Background for the chat area */
+        display: flex;
+        flex-direction: column;
+        /* Adjust height to account for vertical margin */
+        height: calc(100vh - 40px);
+        /* Optional: Add visual definition to the container */
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+        overflow: hidden; /* Clip any potential overflow from children */
+      }
+
+      h1 {
+        color: #2c3e50;
+        text-align: center;
+        margin-top: 20px; /* Added margin back within the body */
+        margin-bottom: 15px;
+        padding: 0 20px; /* Add horizontal padding if needed */
+        flex-shrink: 0;
+      }
+
+      /* Add padding to the main content areas inside the body */
+      #messages-container,
+      #form-container {
+        padding: 0 20px; /* Horizontal padding */
+        width: 100%;
+      }
+
+      #messages-container {
+        flex-grow: 1; /* Takes up vertical space */
+        display: flex; /* Use flex to make #messages fill it */
+        min-height: 150px; /* Ensure minimum height */
+        padding-bottom: 15px; /* Space above form */
+      }
+
+      #messages {
+        list-style-type: none;
+        padding: 10px 15px;
+        flex-grow: 1; /* Fill #messages-container */
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        /* margin-bottom: 15px; REMOVED - handled by container */
+        background-color: white;
+        border-radius: 10px;
+        /* Removed box-shadow here, applied to body */
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+
+        /* Scrollbar styling */
+        &::-webkit-scrollbar {
+          width: 8px;
+        }
+        &::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+        }
+        &::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 10px;
+        }
+        &::-webkit-scrollbar-thumb:hover {
+          background: #a8a8a8;
+        }
+        scrollbar-width: thin;
+        scrollbar-color: #c1c1c1 #f1f1f1;
+      }
+
+      #form-container {
+        flex-shrink: 0; /* Prevent shrinking */
+        padding-bottom: 20px; /* Bottom padding within body */
+      }
+
+      #form {
+        display: flex;
+        gap: 10px;
+        /* width: 100%; Inherits from container */
+      }
+
+      #input {
+        flex-grow: 1;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        font-size: 16px;
+        outline: none;
+        transition: border 0.3s;
+      }
+
+      #input:focus {
+        border-color: #007bff;
+      }
+
+      button {
+        padding: 12px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background 0.3s;
+      }
+
+      button:hover {
+        background: #0056b3;
+      }
+
+      /* Message styles remain the same */
+      .message {
+        margin: 5px 0;
+        padding: 8px 12px;
+        background: #e3f2fd;
+        border-radius: 15px;
+        max-width: 75%;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+        position: relative;
+        animation: fadeIn 0.3s ease;
+        display: flex;
+        align-items: baseline;
+        width: fit-content;
+      }
+
+      .own-message {
+        align-self: flex-end;
+        background: #dcf8c6;
+        border-radius: 15px 15px 4px 15px;
+      }
+
+      .message-content {
+        margin-right: 8px;
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        word-break: break-word;
+        flex-grow: 1;
+        flex-shrink: 1;
+        min-width: 0;
+      }
+
+      .message-time {
+        font-size: 11px;
+        color: #888;
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .system-message {
+        align-self: center;
+        width: auto;
+        max-width: 90%;
+        text-align: center;
+        font-size: 12px;
+        color: #888;
+        margin: 10px 0;
+        background: #f0f0f0;
+        padding: 5px 10px;
+        border-radius: 10px;
+        box-shadow: none;
+      }
+
+      #typing-indicator {
+        font-size: 16px;
+        color: #ff8c00; /* Eye-catching orange color */
+        font-weight: bold; /* Make it bold */
+        margin-top: 8px;
+        font-style: italic;
+      }
+
+      /* Media query for mobile devices (max-width: 768px is a common breakpoint) */
+      @media (max-width: 768px) {
+        body {
+          max-width: 95%;
+          margin: 10px auto; /* Adjust margins for smaller screens */
+          height: calc(100vh - 20px); /* Adjust height for smaller margins */
+        }
+
+        h1 {
+          font-size: 1.5em; /* Slightly smaller heading */
+          margin-top: 15px;
+          margin-bottom: 10px;
+        }
+
+        #messages-container,
+        #form-container {
+          padding: 0 10px; /* Adjust padding for smaller screens */
+        }
+
+        #messages {
+          padding: 8px 12px;
+        }
+
+        #form {
+          gap: 8px;
+        }
+
+        #input {
+          padding: 10px;
+          font-size: 14px;
+        }
+
+        button {
+          padding: 10px 15px;
+          font-size: 14px;
+        }
+
+        .message {
+          max-width: 90%; /* Allow messages to take more width on smaller screens */
+          padding: 6px 10px;
+          font-size: 14px;
+        }
+
+        .message-time {
+          font-size: 10px;
+        }
+
+        #typing-indicator {
+          font-size: 14px;
+          margin-top: 6px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Simple Chat</h1>
+
+    <div id="messages-container">
+      <ul id="messages"></ul>
+    </div>
+
+    <div id="form-container">
+      <form id="form">
+        <input
+          id="input"
+          autocomplete="off"
+          placeholder="Type your message..."
+        />
+        <button type="submit">Send</button>
+      </form>
+      <div id="typing-indicator"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+      // Wrap main logic in a function or immediately invoked function expression (IIFE)
+      // to keep scope clean, although not strictly necessary here.
+      (function () {
+        // Socket.IO Connection Logic (Attempt)
+        try {
+          const socket = io();
+
+          const form = document.getElementById("form");
+          const input = document.getElementById("input"); // Get input ref here
+          const typingIndicator = document.getElementById("typing-indicator");
+          let typingTimeout;
+
+          form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const message = input.value.trim();
+            if (message) {
+              socket.emit("chatMessage", message);
+              addMessage(message, "own-message");
+              input.value = "";
+              // No need to call focus here, it stays focused
+            }
+          });
+
+          socket.on("chatMessage", (msg) => {
+            addMessage(msg, "received-message");
+          });
+
+          socket.on("typing", () => {
+            typingIndicator.textContent = "Someone is typing...";
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+              typingIndicator.textContent = "";
+            }, 1000); // Clear after 1 second of no typing
+          });
+
+          input.addEventListener("input", () => {
+            socket.emit("typing");
+          });
+
+          socket.on("connect_error", (err) => {
+            console.error("Socket.IO connection error:", err);
+            addSystemMessage("Connection failed. Is the server running?");
+          });
+
+          socket.on("connect", () => {
+            console.log("Socket.IO connected:", socket.id);
+            addSystemMessage("Connected to chat.");
+          });
+
+          socket.on("disconnect", (reason) => {
+            console.log("Socket.IO disconnected:", reason);
+            addSystemMessage("Disconnected from chat.");
+          });
+        } catch (e) {
+          console.error(
+            "Socket.IO library not found or failed to initialize.",
+            e
+          );
+          const form = document.getElementById("form");
+          const input = document.getElementById("input"); // Get input ref here too
+          if (input) input.placeholder = "Chat server connection failed.";
+          const button = form ? form.querySelector("button") : null;
+          if (button) button.disabled = true;
+          addSystemMessage("Could not connect to chat server.");
+        }
+
+        // Add message to UI Function
+        function addMessage(msg, type) {
+          const messages = document.getElementById("messages");
+          if (!messages) return;
+
+          const li = document.createElement("li");
+          li.className =
+            type === "own-message" ? "message own-message" : "message";
+
+          const sanitizedMsg = msg.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          const timeString = new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+
+          li.innerHTML = `
+                      <div class="message-content">${sanitizedMsg}</div>
+                      <div class="message-time">${timeString}</div>
+                  `;
+
+          messages.appendChild(li);
+          // Check if user is scrolled up before forcing scroll down
+          const shouldScroll =
+            messages.scrollHeight - messages.scrollTop - messages.clientHeight <
+            100; // Arbitrary threshold
+          if (shouldScroll) {
+            messages.scrollTop = messages.scrollHeight;
+          }
+        }
+
+        // Add system message Function
+        function addSystemMessage(msg) {
+          const messages = document.getElementById("messages");
+          if (!messages) return;
+          const li = document.createElement("li");
+          li.className = "system-message";
+          li.textContent = msg;
+          messages.appendChild(li);
+          // Check if user is scrolled up before forcing scroll down
+          const shouldScroll =
+            messages.scrollHeight - messages.scrollTop - messages.clientHeight <
+            100;
+          if (shouldScroll) {
+            messages.scrollTop = messages.scrollHeight;
+          }
+        }
+
+        // Keydown listener for Enter key
+        const inputElementForKeyListener = document.getElementById("input"); // Separate ref if needed
+        if (inputElementForKeyListener) {
+          inputElementForKeyListener.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              const formElement = document.getElementById("form");
+              if (formElement) {
+                formElement.dispatchEvent(
+                  new Event("submit", { cancelable: true, bubbles: true })
+                );
+              }
+            }
+          });
+        }
+
+        // ONLOAD Actions
+        window.onload = () => {
+          // 1. Focus the input field
+          const inputElementOnLoad = document.getElementById("input");
+          if (inputElementOnLoad) {
+            inputElementOnLoad.focus();
+            console.log("Input focused on load.");
+          } else {
+            console.error("Input element not found on load.");
+          }
+
+          // 2. Check Socket.IO status (if library didn't load)
+          if (typeof io === "undefined") {
+            addSystemMessage("Offline mode. Chat server not reachable.");
+          }
+          // Note: Connection messages are handled by socket events if io is defined
+        };
+      })(); // End of IIFE
+    </script>
+  </body>
+</html>
