@@ -10,6 +10,8 @@ import jwt from "jsonwebtoken";
 import fs from "fs";
 import mongoose from "mongoose";
 import HTTP_STATUS_CODES from "../utils/httpStatusCodes.js";
+import OTP from "../models/otp.model.js";
+import { sendOtpEmail, sendPasswordChangedEmail } from "../services/email/sendEmail.js";
 
 export const genrateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -308,7 +310,68 @@ export const changeCurrentPassword = asyncHandler(async (req, res) => {
     );
 });
 
-// TODO: create a fuction for change password using otp
+
+// DONE:  API Testing ✅ (Completed)
+export const sendOtpToEmail = asyncHandler(async (req, res) => {
+  const { email } = req.body;  // Get email from the request body
+
+  if (!email) {
+    throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "Email is required");
+  }
+
+  // Find the user by email
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(HTTP_STATUS_CODES.NOT_FOUND.code, "User with this email not found");
+  }
+
+  const userId = user._id;
+
+  const otpDoc = await OTP.generateAndSaveOTP(userId);
+  if (!otpDoc) {
+    throw new ApiError(HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR.code, "Failed to generate OTP");
+  }
+
+  await sendOtpEmail(email, user.fullName, otpDoc.otp);
+
+  res.status(HTTP_STATUS_CODES.OK.code).json(
+    new ApiResponse(HTTP_STATUS_CODES.OK.code, {}, "OTP sent to your email")
+  );
+});
+
+
+// controller to reset password with email otp
+// DONE:  API Testing ✅ (Completed)
+export const resetPasswordUsingEmail = asyncHandler(async (req, res) => {
+  const { otp, newPassword, email } = req.body;  // Get email, OTP, and new password from the request body
+
+  if (!otp || !newPassword || !email) {
+    throw new ApiError(HTTP_STATUS_CODES.BAD_REQUEST.code, "OTP, new password, or email missing");
+  }
+
+  // Find the user by email
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(HTTP_STATUS_CODES.NOT_FOUND.code, "User not found");
+  }
+
+  const otpEntry = await OTP.findOne({ user: user._id, otp });
+  if (!otpEntry) {
+    throw new ApiError(HTTP_STATUS_CODES.UNAUTHORIZED.code, "Invalid or expired OTP");
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  await OTP.deleteOne({ _id: otpEntry._id });
+  await sendPasswordChangedEmail(user.email, user.fullName);
+
+  res.status(HTTP_STATUS_CODES.OK.code).json(
+    new ApiResponse(HTTP_STATUS_CODES.OK.code, {}, "Password reset successfully")
+  );
+});
+
+
 
 // DONE:  API Testing ✅ (Completed)
 export const getCurrentUser = asyncHandler(async (req, res) => {

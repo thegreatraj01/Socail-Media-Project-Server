@@ -11,6 +11,8 @@ import {
   logOutUser,
   refreshAccessToken,
   registerUser,
+  resetPasswordUsingEmail,
+  sendOtpToEmail,
   updateUserAvatar,
   updateUserCoverImage,
   updateUserDetails,
@@ -32,6 +34,10 @@ router.route("/register").post(
 
 router.route("/login").post(loginUser);
 
+
+router.route("/sendotp-to-email").post(sendOtpToEmail);
+router.route("/resetpassword-usingemail").post(resetPasswordUsingEmail);
+
 //secured routes
 router.route("/logout").post(verifyJWT, logOutUser);
 router.route("/refresh-token").post(refreshAccessToken);
@@ -46,5 +52,7 @@ router
   .patch(verifyJWT, upload.single("coverImage"), updateUserCoverImage);
 router.route("/channel/:userName").get(verifyJWT, getUserChannelProfile);
 router.route("/history").get(verifyJWT, getUserWatchHistory);
+
+
 
 export default router;

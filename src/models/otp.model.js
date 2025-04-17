@@ -13,31 +13,27 @@ const OTPSchema = new Schema({
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 600, // 600 seconds = 10 minutes
+    expires: 600, // Automatically delete after 10 minutes
   },
 });
-
-// 'expires: 600' sets the TTL to 10 minutes (600 seconds)
-// MongoDB will automatically delete the document 10 minutes after the 'createdAt' time.
 
 const OTP = model("OTP", OTPSchema);
 
 OTP.generateAndSaveOTP = async (userId) => {
-  // Generate a six-digit random OTP
-  const otp = Math.floor(100000 + Math.random() * 900000);
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  // Create a new OTP document
+  await OTP.deleteMany({ user: userId });
+
   const newOTP = new OTP({
-    otp: otp.toString(),
+    otp,
     user: userId,
   });
 
-  // Save the OTP document
   try {
-    const otp = await newOTP.save();
-    return otp;
+    const savedOtp = await newOTP.save();
+    return savedOtp;
   } catch (error) {
-    console.error(error);
+    console.error('❌ Error saving OTP:', error);
     return null;
   }
 };
